@@ -5,12 +5,25 @@ locals {
 }
 
 locals {
-  _name       = var.use_fullname ? module.this.id : module.this.name
+  _name       = var.use_fullname ? module.context.id : module.context.name
   image_names = length(var.image_names) > 0 ? var.image_names : [local._name]
 }
 
+data "aws_caller_identity" "current" { count = module.context.enabled ? 1 : 0 }
+data "aws_region" "current" { count = module.context.enabled ? 1 : 0 }
+
+locals {
+  account_id = data.aws_caller_identity.current[0].account_id
+  region     = data.aws_region.current[0].name
+
+  repository_url_map = {
+    for name in local.image_names : name => "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com/${name}"
+  }
+}
+
+
 resource "aws_ecr_repository" "name" {
-  for_each             = toset(module.this.enabled ? local.image_names : [])
+  for_each             = toset(module.context.enabled ? local.image_names : [])
   name                 = each.value
   image_tag_mutability = var.image_tag_mutability
 
@@ -26,7 +39,7 @@ resource "aws_ecr_repository" "name" {
     scan_on_push = var.scan_images_on_push
   }
 
-  tags = module.this.tags
+  tags = module.context.tags
 }
 
 locals {
@@ -75,7 +88,7 @@ locals {
 }
 
 resource "aws_ecr_lifecycle_policy" "name" {
-  for_each   = toset(module.this.enabled && var.enable_lifecycle_policy ? local.image_names : [])
+  for_each   = toset(module.context.enabled && var.enable_lifecycle_policy ? local.image_names : [])
   repository = aws_ecr_repository.name[each.value].name
 
   policy = jsonencode({
@@ -84,13 +97,13 @@ resource "aws_ecr_lifecycle_policy" "name" {
 }
 
 data "aws_iam_policy_document" "empty" {
-  count = module.this.enabled ? 1 : 0
+  count = module.context.enabled ? 1 : 0
 }
 
 data "aws_partition" "current" {}
 
 data "aws_iam_policy_document" "resource_readonly_access" {
-  count = module.this.enabled ? 1 : 0
+  count = module.context.enabled ? 1 : 0
 
   statement {
     sid    = "ReadonlyAccess"
@@ -163,7 +176,7 @@ data "aws_iam_policy_document" "resource_readonly_access" {
 }
 
 data "aws_iam_policy_document" "resource_full_access" {
-  count = module.this.enabled ? 1 : 0
+  count = module.context.enabled ? 1 : 0
 
   statement {
     sid    = "FullAccess"
@@ -223,13 +236,13 @@ data "aws_iam_policy_document" "resource_full_access" {
 }
 
 data "aws_iam_policy_document" "resource" {
-  count                     = module.this.enabled ? 1 : 0
+  count                     = module.context.enabled ? 1 : 0
   source_policy_documents   = local.principals_readonly_access_non_empty ? [data.aws_iam_policy_document.resource_readonly_access[0].json] : [data.aws_iam_policy_document.empty[0].json]
   override_policy_documents = local.principals_full_access_non_empty ? [data.aws_iam_policy_document.resource_full_access[0].json] : [data.aws_iam_policy_document.empty[0].json]
 }
 
 resource "aws_ecr_repository_policy" "name" {
-  for_each   = toset(local.ecr_need_policy && module.this.enabled ? local.image_names : [])
+  for_each   = toset(local.ecr_need_policy && module.context.enabled ? local.image_names : [])
   repository = aws_ecr_repository.name[each.value].name
   policy     = join("", data.aws_iam_policy_document.resource.*.json)
 }
