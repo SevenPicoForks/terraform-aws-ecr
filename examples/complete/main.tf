@@ -7,5 +7,5 @@ module "ecr" {
 
   encryption_configuration = var.encryption_configuration
 
-  context = module.this.context
+  context = module.context.self
 }
