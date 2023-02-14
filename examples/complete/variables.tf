@@ -1,6 +1,4 @@
-variable "region" {
-  type = string
-}
+
 
 variable "encryption_configuration" {
   type = object({
