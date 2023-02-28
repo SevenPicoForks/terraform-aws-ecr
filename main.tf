@@ -1,7 +1,8 @@
 locals {
   principals_readonly_access_non_empty = length(var.principals_readonly_access) > 0 ? true : false
   principals_full_access_non_empty     = length(var.principals_full_access) > 0 ? true : false
-  ecr_need_policy                      = length(var.principals_full_access) + length(var.principals_readonly_access) > 0 ? true : false
+  principals_custom_policies           = length(var.principals_custom_polices) > 0 ? true : false
+  ecr_need_policy                      = length(var.principals_full_access) + length(var.principals_readonly_access) + length(var.principals_custom_polices) > 0 ? true : false
 }
 
 locals {
@@ -236,9 +237,14 @@ data "aws_iam_policy_document" "resource_full_access" {
   }
 }
 
+data "aws_iam_policy_document" "custom_access" {
+  count = module.context.enabled ? 1 : 0
+  source_policy_documents = var.principals_custom_polices
+}
+
 data "aws_iam_policy_document" "resource" {
   count                     = module.context.enabled ? 1 : 0
-  source_policy_documents   = local.principals_readonly_access_non_empty ? [data.aws_iam_policy_document.resource_readonly_access[0].json] : [data.aws_iam_policy_document.empty[0].json]
+  source_policy_documents   = local.principals_readonly_access_non_empty || local.principals_readonly_access_non_empty ? concat([data.aws_iam_policy_document.resource_readonly_access[0].json], var.principals_custom_polices) : [data.aws_iam_policy_document.empty[0].json]
   override_policy_documents = local.principals_full_access_non_empty ? [data.aws_iam_policy_document.resource_full_access[0].json] : [data.aws_iam_policy_document.empty[0].json]
 }
 
