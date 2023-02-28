@@ -72,3 +72,9 @@ variable "force_delete" {
   description = "Whether to delete the repository even if it contains images"
   default     = false
 }
+
+variable "principals_custom_polices" {
+  type        = list(string)
+  description = "Specify custom policies for principals when conditional access is required."
+  default     = []
+}
