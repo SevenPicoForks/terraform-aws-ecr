@@ -14,8 +14,8 @@ data "aws_caller_identity" "current" { count = module.context.enabled ? 1 : 0 }
 data "aws_region" "current" { count = module.context.enabled ? 1 : 0 }
 
 locals {
-  account_id = data.aws_caller_identity.current[0].account_id
-  region     = data.aws_region.current[0].name
+  account_id = try(data.aws_caller_identity.current[0].account_id, "")
+  region     = try(data.aws_region.current[0].name, "")
 
   repository_url_map = {
     for name in local.image_names : name => "${local.account_id}.dkr.ecr.${local.region}.amazonaws.com/${name}"
