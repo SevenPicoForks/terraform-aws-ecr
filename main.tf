@@ -24,7 +24,6 @@ locals {
 
 
 resource "aws_ecr_repository" "name" {
-  #checkov:skip=CKV_AWS_136:ECR repositories can be encrypted using KMS through variable
   for_each             = toset(module.context.enabled ? local.image_names : [])
   name                 = each.value
   image_tag_mutability = var.image_tag_mutability
