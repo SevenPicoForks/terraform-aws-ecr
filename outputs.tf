@@ -19,7 +19,7 @@ output "repository_arn" {
 }
 
 output "repository_url_map" {
-  value = local.repository_url_map
+  value       = local.repository_url_map
   description = "Map of repository names to repository URLs"
 }
 
