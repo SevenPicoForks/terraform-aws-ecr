@@ -9,4 +9,6 @@ module "ecr" {
   name         = "app"
   use_fullname = false
   image_names  = ["redis", "nginx"]
+
+  encryption_configuration = var.encryption_configuration
 }
