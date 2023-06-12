@@ -5,10 +5,7 @@ provider "aws" {
 module "ecr" {
   source = "../../"
 
-  encryption_configuration = {
-    encryption_type = "KMS"
-    kms_key         = ""
-  } #var.encryption_configuration
+  encryption_configuration = var.encryption_configuration
 
   context = module.context.self
 }

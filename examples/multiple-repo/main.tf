@@ -9,9 +9,4 @@ module "ecr" {
   name         = "app"
   use_fullname = false
   image_names  = ["redis", "nginx"]
-
-  encryption_configuration = {
-    encryption_type = "KMS"
-    kms_key         = ""
-  } #var.encryption_configuration
 }
