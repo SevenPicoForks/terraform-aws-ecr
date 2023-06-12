@@ -10,5 +10,8 @@ module "ecr" {
   use_fullname = false
   image_names  = ["redis", "nginx"]
 
-  encryption_configuration = var.encryption_configuration
+  encryption_configuration = {
+    encryption_type = "KMS"
+    kms_key         = ""
+  } #var.encryption_configuration
 }
