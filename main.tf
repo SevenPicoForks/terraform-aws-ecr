@@ -238,7 +238,7 @@ data "aws_iam_policy_document" "resource_full_access" {
 }
 
 data "aws_iam_policy_document" "custom_access" {
-  count = module.context.enabled ? 1 : 0
+  count                   = module.context.enabled ? 1 : 0
   source_policy_documents = var.principals_custom_polices
 }
 
